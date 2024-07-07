@@ -85,6 +85,13 @@ class SettingsFragment: BaseSettingsFragment(), BackAvailable {
             R.drawable.ic_settings_show_album_art,
             onChanged = viewModel::onAlbumArtChanged
         ),
+        GenericSettingsItem.SwitchSetting(
+            state.useOnlineAfterLocalFailed,
+            "useOnlineAfterLocalFailed",
+            "useOnlineAfterLocalFailed content",
+            R.drawable.ic_nowplaying_ondemand,
+            onChanged = viewModel::onUseOnlineAfterLocalFailedChanged
+        ),
         if(state.supportsSummary){
             GenericSettingsItem.Dropdown(
                 getString(R.string.settings_history_summary_days),

@@ -22,7 +22,9 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.callbackFlow
+import kotlinx.coroutines.flow.emitAll
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.launch
 import org.koin.core.component.KoinComponent
 import org.koin.core.component.inject
@@ -30,8 +32,10 @@ import org.koin.core.component.inject
 interface RecognitionRepository {
 
     sealed class RecognitionState {
-        data class Recording(val source: RecognitionSource): RecognitionState()
-        data class Recognising(val source: RecognitionSource): RecognitionState()
+        sealed class SourcedState(val source: RecognitionSource) : RecognitionState()
+        class Recording(source: RecognitionSource): SourcedState(source)
+        class Recognising(source: RecognitionSource): SourcedState(source)
+
         data class Recognised(
             val recognitionResult: RecognitionResult,
             val metadata: RecognitionMetadata?
@@ -49,6 +53,7 @@ interface RecognitionRepository {
 
     fun requestRecognition(includeAudio: Boolean = false): Flow<RecognitionState>
     fun requestOnDemandRecognition(): Flow<RecognitionState>
+    fun requestLocalAndOnlineRecognition(includeAudio: Boolean = false): Flow<RecognitionState>
     fun getLatestRecognition(): Flow<LastRecognisedSong?>
 
     suspend fun onRecogniseFabClicked()
@@ -165,16 +170,24 @@ class RecognitionRepositoryImpl(
         recognitionDialogShowing.emit(showing)
     }
 
-    override fun requestRecognition(includeAudio: Boolean) = runRecognition(
+    override fun requestRecognition(includeAudio: Boolean): Flow<RecognitionState> = runRecognition(
         RecognitionSource.NNFP, includeAudio
     ) {
         it.requestRecognition()
     }
 
-    override fun requestOnDemandRecognition() = runRecognition(
+    override fun requestOnDemandRecognition(): Flow<RecognitionState> = runRecognition(
         RecognitionSource.ON_DEMAND, false //ON_DEMAND does not include audio
     ) {
         it.requestOnDemandRecognition()
+    }
+
+    override fun requestLocalAndOnlineRecognition(includeAudio: Boolean): Flow<RecognitionState> = flow {
+        requestRecognition(includeAudio).collect {
+            if (it is RecognitionState.Failed) {
+                emitAll(requestOnDemandRecognition())
+            } else emit(it)
+        }
     }
 
     private fun loadLatestRecognition(): LastRecognisedSong? {

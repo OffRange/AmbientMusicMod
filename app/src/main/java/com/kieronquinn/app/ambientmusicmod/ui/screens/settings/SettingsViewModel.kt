@@ -12,6 +12,7 @@ import com.kieronquinn.app.ambientmusicmod.repositories.SettingsRepository
 import com.kieronquinn.app.ambientmusicmod.repositories.SettingsRepository.RecognitionBuffer
 import com.kieronquinn.app.ambientmusicmod.repositories.SettingsRepository.RecognitionPeriod
 import com.kieronquinn.app.ambientmusicmod.repositories.UpdatesRepository
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
@@ -28,6 +29,7 @@ abstract class SettingsViewModel: ViewModel() {
     abstract fun onBedtimeClicked()
     abstract fun onAdvancedClicked()
     abstract fun onAlbumArtChanged(enabled: Boolean)
+    abstract fun onUseOnlineAfterLocalFailedChanged(enabled: Boolean)
     abstract fun onHistorySummaryDaysChanged(context: Context, days: HistorySummaryDays)
 
     sealed class State {
@@ -38,6 +40,7 @@ abstract class SettingsViewModel: ViewModel() {
             val triggerWhenScreenOn: Boolean,
             val bedtimeMode: Boolean,
             val albumArtEnabled: Boolean,
+            val useOnlineAfterLocalFailed: Boolean,
             val supportsSummary: Boolean,
             val historySummaryDays: HistorySummaryDays
         ): State()
@@ -64,6 +67,26 @@ abstract class SettingsViewModel: ViewModel() {
 
 }
 
+fun <T1, T2, T3, T4, T5, T6, R> combine(
+    flow: Flow<T1>,
+    flow2: Flow<T2>,
+    flow3: Flow<T3>,
+    flow4: Flow<T4>,
+    flow5: Flow<T5>,
+    flow6: Flow<T6>,
+    transform: suspend (T1, T2, T3, T4, T5, T6) -> R
+): Flow<R> = combine(flow, flow2, flow3, flow4, flow5, flow6) { args: Array<*> ->
+    @Suppress("UNCHECKED_CAST")
+    transform(
+        args[0] as T1,
+        args[1] as T2,
+        args[2] as T3,
+        args[3] as T4,
+        args[4] as T5,
+        args[5] as T6
+    )
+}
+
 class SettingsViewModelImpl(
     settingsRepository: SettingsRepository,
     deviceConfigRepository: DeviceConfigRepository,
@@ -73,6 +96,7 @@ class SettingsViewModelImpl(
 
     private val triggerWhenScreenOn = settingsRepository.triggerWhenScreenOn
     private val showAlbumArt = deviceConfigRepository.showAlbumArt
+    private val useOnlineAfterLocalFailed = deviceConfigRepository.useOnlineAfterLocalFailed
     private val historySummaryDays = deviceConfigRepository.historySummaryDays
 
     private val recognitionState = combine(
@@ -87,14 +111,16 @@ class SettingsViewModelImpl(
         triggerWhenScreenOn.asFlow(),
         settingsRepository.bedtimeModeEnabled.asFlow(),
         showAlbumArt.asFlow(),
+        useOnlineAfterLocalFailed.asFlow(),
         historySummaryDays.asFlow()
-    ) { recognitionState, screenOn, bedtime, albumArt, days ->
+    ) { recognitionState, screenOn, bedtime, albumArt, useOnlineAfterLocalFailed, days ->
         State.Loaded(
             recognitionState.first,
             recognitionState.second,
             screenOn,
             bedtime,
             albumArt,
+            useOnlineAfterLocalFailed,
             updatesRepository.doesPAMSupportSummaryAndEditing(),
             HistorySummaryDays.forDays(days)
         )
@@ -121,6 +147,12 @@ class SettingsViewModelImpl(
     override fun onAlbumArtChanged(enabled: Boolean) {
         viewModelScope.launch {
             showAlbumArt.set(enabled)
+        }
+    }
+
+    override fun onUseOnlineAfterLocalFailedChanged(enabled: Boolean) {
+        viewModelScope.launch {
+            useOnlineAfterLocalFailed.set(enabled)
         }
     }
 

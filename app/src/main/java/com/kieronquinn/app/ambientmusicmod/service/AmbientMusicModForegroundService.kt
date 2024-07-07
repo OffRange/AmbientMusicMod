@@ -91,8 +91,6 @@ class AmbientMusicModForegroundService: LifecycleService() {
     }
 
     companion object {
-        private const val LOCAL_AND_ONLINE = true
-
         private const val TAG = "AMMFS"
         private const val ALARM_ID = "ambient_musid_mod"
         private const val ON_DEMAND_FAILED_TIMEOUT = 30_000L
@@ -125,6 +123,9 @@ class AmbientMusicModForegroundService: LifecycleService() {
             RECOGNITION, TRIGGER_IMMEDIATE
         }
     }
+
+    private val useOnlineRecognitionAfterLocalFailed = deviceConfig.useOnlineAfterLocalFailed.asFlow()
+        .stateIn(lifecycleScope, SharingStarted.Eagerly, deviceConfig.useOnlineAfterLocalFailed.getSync())
 
     private val loggingEnabled = deviceConfig.enableLogging.asFlow()
         .stateIn(lifecycleScope, SharingStarted.Eagerly, deviceConfig.enableLogging.getSync())
@@ -368,7 +369,7 @@ class AmbientMusicModForegroundService: LifecycleService() {
     private fun setupRecogniser() = whenCreated {
         tickerFlow.flatMapLatest {
             if(!enabled.firstNotNull()) return@flatMapLatest MutableStateFlow(null)
-            if(LOCAL_AND_ONLINE)
+            if(useOnlineRecognitionAfterLocalFailed.firstNotNull())
                 recognition.requestLocalAndOnlineRecognition()
             else
                 recognition.requestRecognition()
@@ -423,7 +424,7 @@ class AmbientMusicModForegroundService: LifecycleService() {
 
     private fun setupScreenOn() = whenCreated {
         screenOnTrigger.collect {
-            val flow = if(LOCAL_AND_ONLINE){
+            val flow = if(useOnlineRecognitionAfterLocalFailed.firstNotNull()){
                 recognition.requestLocalAndOnlineRecognition()
             }else
                 recognition.requestRecognition()

@@ -25,6 +25,7 @@ interface DeviceConfigRepository {
 
     val recordingGain: AmbientMusicModSetting<Float>
     val showAlbumArt: AmbientMusicModSetting<Boolean>
+    val useOnlineAfterLocalFailed: AmbientMusicModSetting<Boolean>
     val enableLogging: AmbientMusicModSetting<Boolean>
     val alternativeEncoding: AmbientMusicModSetting<Boolean>
     val extraLanguages: AmbientMusicModSetting<String>
@@ -87,6 +88,10 @@ class DeviceConfigRepositoryImpl(
         private const val SHOW_ALBUM_ART = "NowPlaying__show_album_art"
         private const val SHOW_ALBUM_ART_DEFAULT = true
 
+        //Also custom, the built in album art setting has side effects
+        private const val USE_ONLINE_AFTER_LOCAL_FAILED = "NowPlaying__use_online_after_local_failed"
+        private const val USE_ONLINE_AFTER_LOCAL_FAILED_DEFAULT = false
+
         //Custom to allow enabling/disabling verbose logging
         private const val ENABLE_LOGGING = "NowPlaying__enable_logging"
         private const val ENABLE_LOGGING_DEFAULT = false
@@ -110,6 +115,7 @@ class DeviceConfigRepositoryImpl(
             SUPERPACKS_REQUIRE_WIFI to DeviceConfigRepositoryImpl::superpacksRequireWiFi,
             RECORDING_GAIN to DeviceConfigRepositoryImpl::recordingGain,
             SHOW_ALBUM_ART to DeviceConfigRepositoryImpl::showAlbumArt,
+            USE_ONLINE_AFTER_LOCAL_FAILED to DeviceConfigRepositoryImpl::useOnlineAfterLocalFailed,
             ENABLE_LOGGING to DeviceConfigRepositoryImpl::enableLogging,
             ALTERNATIVE_ENCODING to DeviceConfigRepositoryImpl::alternativeEncoding,
             EXTRA_LANGUAGES to DeviceConfigRepositoryImpl::extraLanguages,
@@ -194,6 +200,10 @@ class DeviceConfigRepositoryImpl(
 
     override val showAlbumArt = boolean(
         SHOW_ALBUM_ART, SHOW_ALBUM_ART_DEFAULT, onChange
+    )
+
+    override val useOnlineAfterLocalFailed = boolean(
+        USE_ONLINE_AFTER_LOCAL_FAILED, USE_ONLINE_AFTER_LOCAL_FAILED_DEFAULT, onChange
     )
 
     override val enableLogging = boolean(
