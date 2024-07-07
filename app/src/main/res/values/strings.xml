@@ -307,6 +307,9 @@
     <string name="settings_trigger_when_screen_on">Trigger when Screen On</string>
     <string name="settings_trigger_when_screen_on_content">Trigger a recognition when the screen is turned on. Use this option when the Recognition Period is set to \"Never\" to only trigger recognitions when required.</string>
 
+    <string name="settings_online_after_local_failed">Trigger online when local failed</string>
+    <string name="settings_online_after_local_failed_content">Trigger a online recognition (using Google Assistant) when a local recognition has failed. <b>This will increase the amount of network calls</b></string>
+
     <string name="settings_show_album_art">Show Album Art</string>
     <string name="settings_show_album_art_content">Show album art in Now Playing History</string>
 

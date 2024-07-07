@@ -87,8 +87,8 @@ class SettingsFragment: BaseSettingsFragment(), BackAvailable {
         ),
         GenericSettingsItem.SwitchSetting(
             state.useOnlineAfterLocalFailed,
-            "useOnlineAfterLocalFailed",
-            "useOnlineAfterLocalFailed content",
+            getString(R.string.settings_online_after_local_failed),
+            getString(R.string.settings_online_after_local_failed_content),
             R.drawable.ic_nowplaying_ondemand,
             onChanged = viewModel::onUseOnlineAfterLocalFailedChanged
         ),
