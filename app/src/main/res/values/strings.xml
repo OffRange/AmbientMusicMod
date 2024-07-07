@@ -454,6 +454,7 @@
     <string name="widget_recognised">%1s • %1s</string>
     <string name="widget_not_recognised">No Music Recognised</string>
     <string name="widget_recognising">Recognising</string>
+    <string name="widget_recognising_online">Recognising using Google</string>
     <string name="widget_error">Error Recognising Music</string>
     <string name="widget_error_disabled">Recognition is disabled</string>
 

@@ -247,7 +247,11 @@ class WidgetRepositoryImpl(
                 resources.getString(R.string.widget_recognised, before, after)
             }
             is RecognitionState.Recording, is RecognitionState.Recognising -> {
-                resources.getString(R.string.widget_recognising)
+                val sourcedState = state as RecognitionState.SourcedState
+                if(sourcedState.source == RecognitionSource.ON_DEMAND)
+                    resources.getString(R.string.widget_recognising_online)
+                else
+                    resources.getString(R.string.widget_recognising)
             }
             is RecognitionState.Failed, null -> {
                 resources.getString(R.string.widget_not_recognised)
